@@ -18,42 +18,17 @@
 </template>
 
 <script setup lang="ts">
+import { refThrottled, useStorage } from '@vueuse/core'
+
 const ips = ref<string[]>([]);
 const longLatIpArr = ref<{ lng: number; lat: number; ip: string }[]>([]);
-const throttledLongLatIpArr = ref<{ lng: number; lat: number; ip: string }[]>([]);
-const ipLatLngMap = ref<{ [key: string]: { lng: number; lat: number } }>({});
-const apiKeyModel = ref("");
+const throttledLongLatIpArr = refThrottled(longLatIpArr, 3000);
+const ipLatLngMap = useStorage<{ [key: string]: { lng: number; lat: number } }>("ips", {})
+const apiKeyModel = useStorage("gMapApiKey", "");
 
 const setApiKey = () => {
-  localStorage.setItem("gMapApiKey", apiKeyModel.value);
   window.location.reload();
 }
-
-const throttle = (fn: Function, limit: number) => {
-  let inThrottle: boolean;
-  return function () {
-    const args = arguments;
-    // @ts-expect-error
-    const context = this;
-    if (!inThrottle) {
-      fn.apply(context, args);
-      inThrottle = true;
-      setTimeout(() => (inThrottle = false), limit);
-    }
-  };
-};
-
-const throttledLongLatIpArrSetter = throttle(
-  () => {
-    console.log("throttle")
-    throttledLongLatIpArr.value = longLatIpArr.value;
-
-    localStorage.setItem("ips", JSON.stringify(ipLatLngMap.value));
-  },
-  3000
-);
-
-
 
 const getLongLat = async (ip: string) => {
   const fromStorage = ipLatLngMap.value[ip]
@@ -78,20 +53,11 @@ const onSubmit = async (ipArr: string[]) => {
   ips.value = ipArr;
   longLatIpArr.value = [];
   throttledLongLatIpArr.value = [];
-  // longLatIpArr.value = await Promise.all(ipArr.map(getLongLat));
+
   for (const ip of ipArr) {
     const longLat = await getLongLat(ip);
     longLatIpArr.value = [...longLatIpArr.value, longLat];
-    throttledLongLatIpArrSetter();
   }
   throttledLongLatIpArr.value = longLatIpArr.value;
 };
-
-onMounted(() => {
-  const ipsFromLocalStorage = localStorage.getItem("ips");
-  if (ipsFromLocalStorage) {
-    ipLatLngMap.value = JSON.parse(ipsFromLocalStorage);
-  }
-  apiKeyModel.value = localStorage.getItem("gMapApiKey") || "";
-});
 </script>
