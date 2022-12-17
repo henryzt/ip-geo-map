@@ -24,12 +24,6 @@
 <script setup lang="ts">
 import { refThrottled, useStorage } from '@vueuse/core'
 
-interface ILongLatIp {
-  lng: number;
-  lat: number;
-  ip: string;
-}
-
 const ips = ref<string[]>([]);
 const longLatIpArr = ref<ILongLatIp[]>([]);
 const throttledLongLatIpArr = refThrottled(longLatIpArr, 3000);
@@ -44,7 +38,7 @@ const getLongLat = async (ip: string): Promise<ILongLatIp> => {
   const fromStorage = ipLatLngMap.value[ip]
   if (fromStorage) {
     const { lat, lng } = fromStorage;
-    return { lng: Number(lng), lat: Number(lat), ip };
+    return { lng: Number(lng), lat: Number(lat), ip, added: false };
   }
   try {
     const { data } = await useFetch<string>(`https://ipapi.co/${ip}/latlong/`);
@@ -53,7 +47,7 @@ const getLongLat = async (ip: string): Promise<ILongLatIp> => {
     const [lat, lng] = data.value.split(",");
     ipLatLngMap.value = { ...ipLatLngMap.value, [ip]: { lat: Number(lat), lng: Number(lng) } };
     console.log(ip, lat, lng)
-    return { lng: Number(lng), lat: Number(lat), ip };
+    return { lng: Number(lng), lat: Number(lat), ip, added: false };
   } catch (e) {
     console.error(e);
     // retry after 1.5s

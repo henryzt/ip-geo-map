@@ -9,17 +9,19 @@ import { Loader } from '@googlemaps/js-api-loader';
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 
 const props = defineProps<{
-  markerData: { lng: number; lat: number; ip: string }[];
+  markerData: ILongLatIp[];
 }>();
 
-const googleMaps = ref<typeof google.maps | undefined>();
-const mapObj = ref();
+const addedIpMap = ref<{ [key: string]: boolean }>({});
+
+let mapObj: google.maps.Map;
+let infoWindow: google.maps.InfoWindow;
+let markerClusterer: MarkerClusterer;
 
 const mapOptions = {
   center: { lat: 42.0902, lng: -101.712 },
   zoom: 4
 };
-
 
 onMounted(() => {
   const loader = new Loader({
@@ -31,9 +33,15 @@ onMounted(() => {
   loader
     .load()
     .then((google) => {
-      googleMaps.value = google.maps;
       // @ts-expect-error
-      mapObj.value = new google.maps.Map(document.getElementById("map"), mapOptions);
+      mapObj = new google.maps.Map(document.getElementById("map"), mapOptions);
+
+      infoWindow = new google.maps.InfoWindow({
+        content: "",
+        disableAutoPan: true,
+      });
+
+      markerClusterer = new MarkerClusterer({ markers: [], map: mapObj });
     })
     .catch(e => {
       console.error(e)
@@ -42,31 +50,29 @@ onMounted(() => {
 
 watch(() => props.markerData, () => {
   const markerData = props.markerData;
-  if (markerData && mapObj.value) {
-    const infoWindow = new google.maps.InfoWindow({
-      content: "a",
-      disableAutoPan: true,
-    });
+  if (markerData && mapObj) {
+    const markers = []
 
-    // Add some markers to the map.
-    const markers = markerData.map((position, i) => {
+    for (const position of markerData) {
+      if (addedIpMap.value[position.ip]) continue;
+
       const label = position.ip;
       const marker = new google.maps.Marker({
-        position
+        position: { lat: position.lat, lng: position.lng },
       });
 
-      // markers can only be keyboard focusable when they have click listeners
-      // open info window when marker is clicked
       marker.addListener("click", () => {
         infoWindow.setContent(label);
-        infoWindow.open(mapObj.value, marker);
+        infoWindow.open(mapObj, marker);
       });
 
-      return marker;
-    });
+      addedIpMap.value[position.ip] = true;
 
-    // Add a marker clusterer to manage the markers.
-    new MarkerClusterer({ markers, map: mapObj.value });
+      markers.push(marker)
+    }
+
+    markerClusterer.addMarkers(markers);
+
   }
 });
 </script>
