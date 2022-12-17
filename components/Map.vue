@@ -23,7 +23,7 @@ const mapOptions = {
 
 onMounted(() => {
   const loader = new Loader({
-    apiKey: "",
+    apiKey: localStorage.getItem("gMapApiKey") || "",
     version: "weekly",
     libraries: ["places"]
   });

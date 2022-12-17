@@ -1,8 +1,14 @@
 <template>
   <div class="flex">
-    <div>
+    <div class="m-5">
+      <div class="my-3 text-3xl">IP Geo Map</div>
+      <div class="flex">
+        <input class="input input-bordered w-full mr-2" type="text" placeholder="Google Map API key"
+          v-model="apiKeyModel" />
+        <button class="btn" @click="setApiKey">Set</button>
+      </div>
       <Form class="w-72" @on-submit="onSubmit" />
-      <div class="px-5">Fetched {{ longLatIpArr.length }} out of {{ ips.length }}, rendered
+      <div class="py-5">Fetched {{ longLatIpArr.length }} out of {{ ips.length }}, rendered
         {{ throttledLongLatIpArr.length }}</div>
     </div>
     <Map class="flex-grow" :markerData="throttledLongLatIpArr" />
@@ -14,6 +20,12 @@ const ips = ref<string[]>([]);
 const longLatIpArr = ref<{ lng: number; lat: number; ip: string }[]>([]);
 const throttledLongLatIpArr = ref<{ lng: number; lat: number; ip: string }[]>([]);
 const ipLatLngMap = ref<{ [key: string]: { lng: number; lat: number } }>({});
+const apiKeyModel = ref("");
+
+const setApiKey = () => {
+  localStorage.setItem("gMapApiKey", apiKeyModel.value);
+  window.location.reload();
+}
 
 const throttle = (fn: Function, limit: number) => {
   let inThrottle: boolean;
@@ -78,5 +90,6 @@ onMounted(() => {
   if (ipsFromLocalStorage) {
     ipLatLngMap.value = JSON.parse(ipsFromLocalStorage);
   }
+  apiKeyModel.value = localStorage.getItem("gMapApiKey") || "";
 });
 </script>
