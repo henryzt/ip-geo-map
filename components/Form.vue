@@ -1,6 +1,10 @@
 <template>
-  <div>Enter a few ip addresses</div>
-  <textarea :value="ips" @input="onInput" />
+  <div class="m-5 flex flex-col">
+    <div class="my-2 text-3xl">IP Geo Map</div>
+    <textarea class="textarea textarea-bordered my-2" :value="ips" @input="onInput"
+      placeholder="IP addresses, separated by comma" />
+    <button class="btn">OK</button>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -15,4 +19,5 @@ const onInput = (e: any) => {
 </script>
 
 <style scoped>
+
 </style>

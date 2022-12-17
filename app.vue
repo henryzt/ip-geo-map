@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Form v-model:ips="ips" />
+    <Form class="w-2/12" v-model:ips="ips" />
   </div>
 </template>
 
