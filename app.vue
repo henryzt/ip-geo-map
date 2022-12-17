@@ -13,6 +13,7 @@
 const ips = ref<string[]>([]);
 const longLatIpArr = ref<{ lng: number; lat: number; ip: string }[]>([]);
 const throttledLongLatIpArr = ref<{ lng: number; lat: number; ip: string }[]>([]);
+const ipLatLngMap = ref<{ [key: string]: { lng: number; lat: number } }>({});
 
 const throttle = (fn: Function, limit: number) => {
   let inThrottle: boolean;
@@ -32,15 +33,25 @@ const throttledLongLatIpArrSetter = throttle(
   () => {
     console.log("throttle")
     throttledLongLatIpArr.value = longLatIpArr.value;
+
+    localStorage.setItem("ips", JSON.stringify(ipLatLngMap.value));
   },
   3000
 );
 
+
+
 const getLongLat = async (ip: string) => {
+  const fromStorage = ipLatLngMap.value[ip]
+  if (fromStorage) {
+    const { lat, lng } = fromStorage;
+    return { lng: Number(lng), lat: Number(lat), ip };
+  }
   try {
     const res = await fetch(`https://ipapi.co/${ip}/latlong/`);
     const [lat, lng] = await res.text().then((res) => res.split(","));
     console.log(ip, lat, lng)
+    ipLatLngMap.value = { ...ipLatLngMap.value, [ip]: { lat: Number(lat), lng: Number(lng) } };
     return { lng: Number(lng), lat: Number(lat), ip };
   } catch (e) {
     console.error(e);
@@ -59,5 +70,13 @@ const onSubmit = async (ipArr: string[]) => {
     longLatIpArr.value = [...longLatIpArr.value, longLat];
     throttledLongLatIpArrSetter();
   }
+  throttledLongLatIpArr.value = longLatIpArr.value;
 };
+
+onMounted(() => {
+  const ipsFromLocalStorage = localStorage.getItem("ips");
+  if (ipsFromLocalStorage) {
+    ipLatLngMap.value = JSON.parse(ipsFromLocalStorage);
+  }
+});
 </script>

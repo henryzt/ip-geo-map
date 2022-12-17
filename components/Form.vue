@@ -1,7 +1,8 @@
 <template>
   <div class="m-5 flex flex-col">
     <div class="my-2 text-3xl">IP Geo Map</div>
-    <textarea class="textarea textarea-bordered my-2" v-model="ips" placeholder="IP addresses, separated by newline" />
+    <textarea class="textarea textarea-bordered my-2 h-56" v-model="ips"
+      placeholder="IP addresses, separated by newline" />
     <button class="btn" @click="convertIp">OK</button>
   </div>
 </template>

@@ -32,6 +32,7 @@ onMounted(() => {
     .load()
     .then((google) => {
       googleMaps.value = google.maps;
+      // @ts-expect-error
       mapObj.value = new google.maps.Map(document.getElementById("map"), mapOptions);
     })
     .catch(e => {
@@ -44,19 +45,15 @@ watch(() => props.markerData, () => {
   console.log('henryDebug markerData', JSON.stringify(markerData));
   if (markerData && mapObj.value) {
     const infoWindow = new google.maps.InfoWindow({
-      content: "",
+      content: "a",
       disableAutoPan: true,
     });
 
-    // Create an array of alphabetical characters used to label the markers.
-    const labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
     // Add some markers to the map.
     const markers = markerData.map((position, i) => {
-      const label = labels[i % labels.length];
+      const label = position.ip;
       const marker = new google.maps.Marker({
-        position,
-        label,
+        position
       });
 
       // markers can only be keyboard focusable when they have click listeners
