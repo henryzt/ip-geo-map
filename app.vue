@@ -1,22 +1,63 @@
 <template>
   <div class="flex">
-    <Form class="w-72" @on-submit="onSubmit" />
-    <Map class="flex-grow" :markerData="longLatIpArr" />
+    <div>
+      <Form class="w-72" @on-submit="onSubmit" />
+      <div class="px-5">Fetched {{ longLatIpArr.length }} out of {{ ips.length }}, rendered
+        {{ throttledLongLatIpArr.length }}</div>
+    </div>
+    <Map class="flex-grow" :markerData="throttledLongLatIpArr" />
   </div>
 </template>
 
 <script setup lang="ts">
+const ips = ref<string[]>([]);
 const longLatIpArr = ref<{ lng: number; lat: number; ip: string }[]>([]);
+const throttledLongLatIpArr = ref<{ lng: number; lat: number; ip: string }[]>([]);
+
+const throttle = (fn: Function, limit: number) => {
+  let inThrottle: boolean;
+  return function () {
+    const args = arguments;
+    // @ts-expect-error
+    const context = this;
+    if (!inThrottle) {
+      fn.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+};
+
+const throttledLongLatIpArrSetter = throttle(
+  () => {
+    console.log("throttle")
+    throttledLongLatIpArr.value = longLatIpArr.value;
+  },
+  3000
+);
 
 const getLongLat = async (ip: string) => {
-  const res = await fetch(`https://ipapi.co/${ip}/latlong/`);
-  const [lat, lng] = await res.text().then((res) => res.split(","));
-  console.log(lng, lat, ip)
-  return { lng: Number(lng), lat: Number(lat), ip };
+  try {
+    const res = await fetch(`https://ipapi.co/${ip}/latlong/`);
+    const [lat, lng] = await res.text().then((res) => res.split(","));
+    console.log(ip, lat, lng)
+    return { lng: Number(lng), lat: Number(lat), ip };
+  } catch (e) {
+    console.error(e);
+    return { lng: 0, lat: 0, ip };
+  }
 };
 
 const onSubmit = async (ipArr: string[]) => {
   console.log(ipArr);
-  longLatIpArr.value = await Promise.all(ipArr.map(getLongLat));
+  ips.value = ipArr;
+  longLatIpArr.value = [];
+  throttledLongLatIpArr.value = [];
+  // longLatIpArr.value = await Promise.all(ipArr.map(getLongLat));
+  for (const ip of ipArr) {
+    const longLat = await getLongLat(ip);
+    longLatIpArr.value = [...longLatIpArr.value, longLat];
+    throttledLongLatIpArrSetter();
+  }
 };
 </script>
