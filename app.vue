@@ -11,7 +11,9 @@
       <div class="py-5">Fetched {{ longLatIpArr.length }} out of {{ ips.length }}, rendered
         {{ throttledLongLatIpArr.length }}</div>
     </div>
-    <Map class="flex-grow" :markerData="throttledLongLatIpArr" />
+    <ClientOnly>
+      <Map class="flex-grow" :markerData="throttledLongLatIpArr" />
+    </ClientOnly>
   </div>
 </template>
 
