@@ -1,20 +1,18 @@
 <template>
   <div class="m-5 flex flex-col">
     <div class="my-2 text-3xl">IP Geo Map</div>
-    <textarea class="textarea textarea-bordered my-2" :value="ips" @input="onInput"
-      placeholder="IP addresses, separated by comma" />
-    <button class="btn">OK</button>
+    <textarea class="textarea textarea-bordered my-2" v-model="ips" placeholder="IP addresses, separated by newline" />
+    <button class="btn" @click="convertIp">OK</button>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  ips: string;
-}>();
-const emits = defineEmits(["update:ips"]);
+const emits = defineEmits(["onSubmit"]);
+const ips = ref("");
 
-const onInput = (e: any) => {
-  emits("update:ips", e?.target?.value);
+const convertIp = () => {
+  const ipArr = ips.value.split("\n").map((ip) => ip.trim());
+  emits("onSubmit", ipArr);
 };
 </script>
 
