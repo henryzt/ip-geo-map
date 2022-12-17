@@ -1,15 +1,19 @@
 <template>
   <div class="flex">
-    <div class="m-5">
+    <div class="m-5 max-w-xs">
       <div class="my-3 text-3xl">IP Geo Map</div>
-      <div class="flex">
+      <div>Mapping IP Addresses</div>
+      <div class="flex mt-3">
         <input class="input input-bordered w-full mr-2" type="text" placeholder="Google Map API key"
           v-model="apiKeyModel" />
         <button class="btn" @click="setApiKey">Set</button>
       </div>
-      <Form class="w-72" @on-submit="onSubmit" />
-      <div class="py-5">Fetched {{ longLatIpArr.length }} out of {{ ips.length }}, rendered
+      <Form class="w-full" @on-submit="onSubmit" />
+      <div class="pt-5">Fetched {{ longLatIpArr.length }} out of {{ ips.length }}, rendered
         {{ throttledLongLatIpArr.length }}</div>
+      <progress class="progress progress-primary w-full" :value="longLatIpArr.length" :max="ips.length"></progress>
+      <div class="opacity-30 text-sm">Results will be cached in local storage for reuse, nothing are stored remotely
+      </div>
     </div>
     <ClientOnly>
       <Map class="flex-grow" :markerData="throttledLongLatIpArr" />

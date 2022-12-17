@@ -2,7 +2,7 @@
   <div class="flex flex-col">
     <textarea class="textarea textarea-bordered my-2 h-56" v-model="ips"
       placeholder="IP addresses, separated by newline" />
-    <button class="btn" @click="convertIp">Fetch</button>
+    <button class="btn btn-primary" @click="convertIp">Fetch</button>
   </div>
 </template>
 
