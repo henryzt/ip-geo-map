@@ -20,8 +20,14 @@
 <script setup lang="ts">
 import { refThrottled, useStorage } from '@vueuse/core'
 
+interface ILongLatIp {
+  lng: number;
+  lat: number;
+  ip: string;
+}
+
 const ips = ref<string[]>([]);
-const longLatIpArr = ref<{ lng: number; lat: number; ip: string }[]>([]);
+const longLatIpArr = ref<ILongLatIp[]>([]);
 const throttledLongLatIpArr = refThrottled(longLatIpArr, 3000);
 const ipLatLngMap = useStorage<{ [key: string]: { lng: number; lat: number } }>("ips", {})
 const apiKeyModel = useStorage("gMapApiKey", "");
@@ -30,21 +36,26 @@ const setApiKey = () => {
   window.location.reload();
 }
 
-const getLongLat = async (ip: string) => {
+const getLongLat = async (ip: string): Promise<ILongLatIp> => {
   const fromStorage = ipLatLngMap.value[ip]
   if (fromStorage) {
     const { lat, lng } = fromStorage;
     return { lng: Number(lng), lat: Number(lat), ip };
   }
   try {
-    const res = await fetch(`https://ipapi.co/${ip}/latlong/`);
-    const [lat, lng] = await res.text().then((res) => res.split(","));
-    console.log(ip, lat, lng)
+    const { data } = await useFetch<string>(`https://ipapi.co/${ip}/latlong/`);
+    if (!data.value) throw new Error("No data");
+
+    const [lat, lng] = data.value.split(",");
     ipLatLngMap.value = { ...ipLatLngMap.value, [ip]: { lat: Number(lat), lng: Number(lng) } };
+    console.log(ip, lat, lng)
     return { lng: Number(lng), lat: Number(lat), ip };
   } catch (e) {
     console.error(e);
-    return { lng: 0, lat: 0, ip };
+    // retry after 1.5s
+    console.warn("retrying", ip)
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    return getLongLat(ip);
   }
 };
 

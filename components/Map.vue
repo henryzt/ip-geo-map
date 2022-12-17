@@ -42,7 +42,6 @@ onMounted(() => {
 
 watch(() => props.markerData, () => {
   const markerData = props.markerData;
-  console.log('henryDebug markerData', JSON.stringify(markerData));
   if (markerData && mapObj.value) {
     const infoWindow = new google.maps.InfoWindow({
       content: "a",
