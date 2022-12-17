@@ -16,7 +16,7 @@
       </div>
     </div>
     <ClientOnly>
-      <Map class="flex-grow" :markerData="throttledLongLatIpArr" />
+      <Map class="flex-grow" ref="mapRef" :markerData="throttledLongLatIpArr" />
     </ClientOnly>
   </div>
 </template>
@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { refThrottled, useStorage } from '@vueuse/core'
 
+const mapRef = ref();
 const ips = ref<string[]>([]);
 const longLatIpArr = ref<ILongLatIp[]>([]);
 const throttledLongLatIpArr = refThrottled(longLatIpArr, 3000);
@@ -62,6 +63,7 @@ const onSubmit = async (ipArr: string[]) => {
   ips.value = ipArr;
   longLatIpArr.value = [];
   throttledLongLatIpArr.value = [];
+  mapRef.value.cleanMarkers();
 
   for (const ip of ipArr) {
     const longLat = await getLongLat(ip);

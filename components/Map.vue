@@ -12,8 +12,6 @@ const props = defineProps<{
   markerData: ILongLatIp[];
 }>();
 
-const addedIpMap = ref<{ [key: string]: boolean }>({});
-
 let mapObj: google.maps.Map;
 let infoWindow: google.maps.InfoWindow;
 let markerClusterer: MarkerClusterer;
@@ -54,7 +52,6 @@ watch(() => props.markerData, () => {
     const markers = []
 
     for (const position of markerData) {
-      if (addedIpMap.value[position.ip]) continue;
 
       const label = position.ip;
       const marker = new google.maps.Marker({
@@ -66,14 +63,20 @@ watch(() => props.markerData, () => {
         infoWindow.open(mapObj, marker);
       });
 
-      addedIpMap.value[position.ip] = true;
-
       markers.push(marker)
     }
 
     markerClusterer.addMarkers(markers);
 
   }
+});
+
+const cleanMarkers = () => {
+  markerClusterer.clearMarkers();
+}
+
+defineExpose({
+  cleanMarkers
 });
 </script>
 
