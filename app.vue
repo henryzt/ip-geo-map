@@ -24,6 +24,14 @@
 <script setup lang="ts">
 import { refThrottled, useStorage } from '@vueuse/core'
 
+useHead({
+  title: "IP Geo Map",
+  meta: [{
+    name: 'description',
+    content: "Mapping IP Addresses"
+  }]
+})
+
 const mapRef = ref();
 const ips = ref<string[]>([]);
 const longLatIpArr = ref<ILongLatIp[]>([]);
@@ -65,10 +73,15 @@ const onSubmit = async (ipArr: string[]) => {
   throttledLongLatIpArr.value = [];
   mapRef.value.cleanMarkers();
 
-  for (const ip of ipArr) {
-    const longLat = await getLongLat(ip);
-    longLatIpArr.value = [...longLatIpArr.value, longLat];
-  }
+  const res = await $fetch('/api/ip', {
+    method: "POST",
+    body: JSON.stringify(ipArr)
+  })
+  console.log(res);
+  // for (const ip of ipArr) {
+  //   const longLat = await getLongLat(ip);
+  //   longLatIpArr.value = [...longLatIpArr.value, longLat];
+  // }
   throttledLongLatIpArr.value = longLatIpArr.value;
 };
 </script>
