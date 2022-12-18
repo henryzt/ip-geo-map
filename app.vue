@@ -47,7 +47,7 @@ const getLongLat = async (ip: string): Promise<ILongLatIp> => {
   const fromStorage = ipLatLngMap.value[ip]
   if (fromStorage) {
     const { lat, lng } = fromStorage;
-    return { lng: Number(lng), lat: Number(lat), ip, added: false };
+    return { lng: Number(lng), lat: Number(lat), ip };
   }
   try {
     const { data } = await useFetch<string>(`https://ipapi.co/${ip}/latlong/`);
@@ -56,7 +56,7 @@ const getLongLat = async (ip: string): Promise<ILongLatIp> => {
     const [lat, lng] = data.value.split(",");
     ipLatLngMap.value = { ...ipLatLngMap.value, [ip]: { lat: Number(lat), lng: Number(lng) } };
     console.log(ip, lat, lng)
-    return { lng: Number(lng), lat: Number(lat), ip, added: false };
+    return { lng: Number(lng), lat: Number(lat), ip };
   } catch (e) {
     console.error(e);
     // retry after 1.5s
@@ -73,11 +73,18 @@ const onSubmit = async (ipArr: string[]) => {
   throttledLongLatIpArr.value = [];
   mapRef.value.cleanMarkers();
 
-  const res = await $fetch('/api/ip', {
-    method: "POST",
-    body: JSON.stringify(ipArr)
-  })
-  console.log(res);
+  const chunkSize = 500;
+  for (let i = 0; i < ipArr.length; i += chunkSize) {
+    const chunk = ipArr.slice(i, i + chunkSize);
+    const res: ILongLatIp[] = await $fetch('http://localhost:3001/', {
+      method: "POST",
+      body: JSON.stringify(chunk)
+    })
+    console.log(res);
+    longLatIpArr.value = [...longLatIpArr.value, ...res];
+  }
+
+
   // for (const ip of ipArr) {
   //   const longLat = await getLongLat(ip);
   //   longLatIpArr.value = [...longLatIpArr.value, longLat];
